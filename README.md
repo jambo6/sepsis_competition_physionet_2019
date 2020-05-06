@@ -10,8 +10,9 @@ Once the repo has been cloned locally, setup a python environment with ``python=
 Create a folder `/data/raw`, the `data/` folder should be made a symlink if you wish to store the large data files elsewhere. 
 
 Run the following:
-    1. ``python src/data/get_data/download.py`` To download the raw .psv files to `/data/raw`
-    2. ``python src/data/get_data/convert_data.py`` To convert the downloaded data into a pandas dataframe (for easy analysis) and a TimeSeriesDataset (for fast operations).
+1. ``python src/data/get_data/download.py`` To download the raw .psv files to `/data/raw`
+2. ``python src/data/get_data/convert_data.py`` To convert the downloaded data into a pandas dataframe (for easy analysis) and a TimeSeriesDataset (for fast operations).
     
-You are then ready to go! Check `/notebooks/examples/prediction.ipynb` for an intro to the basic prediction methods and the functions used to generate the features. 
+You are then ready to go! Check `/notebooks/examples/prediction.ipynb` for an intro to the basic prediction methods and the functions used to generate the features. Then either follow the example and use a notebook to build your own models, or do something similar to that seen in ``src/model/train_model.py``. 
 
+More functionality will be added soon!
