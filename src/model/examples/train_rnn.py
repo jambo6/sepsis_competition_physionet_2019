@@ -58,8 +58,6 @@ for epoch in range(n_epochs):
         loss.backward()
         optimizer.step()
         train_losses.append(loss.item())
-        if i > 10:
-            break
 
     if epoch % print_freq == 0:
         train_loss = np.mean(train_losses)
