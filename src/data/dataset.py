@@ -49,7 +49,8 @@ class TimeSeriesDataset(Dataset):
         Returns:
             torch.Tensor: Tensor corresponding to the chosen columns.
         """
-        return self.data[:, :, self._col_indexer(cols)]
+        data = self.data[:, :, self._col_indexer(cols)]
+        return TimeSeriesDataset(data, cols)
 
     def __setitem__(self, key, item):
         """
@@ -133,7 +134,7 @@ class TimeSeriesDataset(Dataset):
         self.lengths = lengths
         return self
 
-    def data_to_list(self):
+    def to_list(self):
         """ Converts the tensor data back onto original length list format. """
         tensor_list = []
         for i, l in enumerate(self.lengths):
@@ -142,7 +143,24 @@ class TimeSeriesDataset(Dataset):
 
     def to_ml(self):
         """ Converts onto a single tensor of original lengths. """
-        return torch.cat(self.data_to_list())
+        return torch.cat(self.to_list())
+
+
+class ListDataset(Dataset):
+    """Simple dataset for ragged length list-style data.
+
+    If your data consists of tensors of variable lengths inside a list, indexing this dataset will get the corresponding
+    list indexed tensor. Useful for deep learning sequential modelling, RNNs, GRUs, etc.
+    """
+    def __init__(self, data_list, labels):
+        self.data_list = data_list
+        self.labels = labels
+
+    def __getitem__(self, idx):
+        return self.data_list[idx], self.labels[idx]
+
+    def __len__(self):
+        return len(self.data_list)
 
 
 class LocIndexer():

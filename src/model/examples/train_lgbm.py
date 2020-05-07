@@ -15,7 +15,7 @@ from src.model.optimizer import ThresholdOptimizer
 dataset = TimeSeriesDataset().load(DATA_DIR + '/raw/data.tsd')
 
 # Load the training labels
-labels = load_pickle(DATA_DIR + '/processed/labels/binary.pickle')
+labels = load_pickle(DATA_DIR + '/processed/labels/utility_scores.pickle')
 
 # Apply a forward fill
 dataset.data = torch_ffill(dataset.data)
@@ -39,11 +39,11 @@ X = dataset.to_ml()
 assert len(X) == len(labels)    # Sanity check
 
 # Train a model
-cv = stratified_kfold_cv(dataset, labels, n_splits=5, seed=1)
+cv, _ = stratified_kfold_cv(dataset, labels, n_splits=5, seed=1)
 
 # Regressor
 print('Training model...')
-clf = LGBMClassifier()
+clf = LGBMRegressor(n_estimators=100)
 predictions = cross_val_predict(clf, X, labels, cv=cv, n_jobs=-1)
 
 # Evaluation

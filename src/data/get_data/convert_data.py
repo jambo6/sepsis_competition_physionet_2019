@@ -105,11 +105,12 @@ def create_timeseries_dataset(df):
 
 if __name__ == '__main__':
     # Create a dataframe
+    print('Step 1 of 3: Converting to pandas dataframe.')
     df = load_to_dataframe()
     save_pickle(df, DATA_DIR + '/raw/df.pickle')
-    df = load_pickle(DATA_DIR + '/raw/df.pickle')
 
     # Convert the scores
+    print('Step 2 of 3: Converting to labels.')
     overall_labels = torch.Tensor(get_overall_label(df))
     scores = convert_labels(df)
 
@@ -118,6 +119,7 @@ if __name__ == '__main__':
     utility_scores = torch.Tensor(scores['utility'])
 
     # Create a time-series dataset
+    print('Step 3 of 3: Converting to TimeSeriesDataset format.')
     dataset = create_timeseries_dataset(df)
 
     # Save the data

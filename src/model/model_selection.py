@@ -7,12 +7,21 @@ import torch
 from sklearn.model_selection import StratifiedKFold
 
 
-def stratified_kfold_cv(dataset, labels, n_splits=5, seed=1):
+def stratified_kfold_cv(dataset, labels, n_splits=5, return_as_list=False, seed=1):
     """Custom cv selection algorithm.
 
     The imbalance of sepsis to non-sepsis cases, along with the variability in the lengths of the series makes choosing
     representative CV folds difficult. Here we provide a custom method that stratifies by overall group, that is, by
     sepsis of non sepsis, and outputs the cv to include all indexes corresponding to those time-series.
+
+    Args:
+        dataset (TimeSeriesDataset): A TimeSeriesDataset instance.
+        labels (torch.Tensor): The full label list, there must be a label for each time-point in the dataset.
+        n_splits (int): Number of CV splits.
+        return_as_list (bool): Set true to return the indexes as a list where each entry corresponds to the indexes for
+            a given id.
+        seed (int): Random seed.
+
     """
     # Set a seed so the same cv is used everytime
     np.random.seed(seed)
@@ -36,9 +45,14 @@ def stratified_kfold_cv(dataset, labels, n_splits=5, seed=1):
     # Now convert this back onto the actual time series ids
     cv = []
     for i, fold in enumerate(id_cv):
-        train_idxs = np.concatenate([id_idxs[i] for i in fold[0]])
-        test_idxs = np.concatenate([id_idxs[i] for i in fold[1]])
+        train_idxs = [id_idxs[i] for i in fold[0]]
+        test_idxs = [id_idxs[i] for i in fold[1]]
+
+        if not return_as_list:
+            train_idxs = np.concatenate([id_idxs[i] for i in fold[0]])
+            test_idxs = np.concatenate([id_idxs[i] for i in fold[1]])
+
         cv.append([train_idxs, test_idxs])
 
-    return cv
+    return cv, id_cv
 

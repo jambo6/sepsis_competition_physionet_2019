@@ -12,7 +12,7 @@ def main():
     and `data/raw/training_setB`.
     """
     base_dir = DATA_DIR + '/raw'
-    assert os.path.isdir(base_dir), 'Please make a directory at {ROOT}/data/sepsis/raw'
+    assert os.path.isdir(base_dir), 'Please make a directory at {ROOT}/data/raw'
 
     # Two save dirs
     save_loc_a = base_dir + '/training_setA'
