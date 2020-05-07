@@ -29,6 +29,9 @@ class TimeSeriesDataset(Dataset):
             self.lengths = [d.size(0) for d in data]
             self.columns = columns
 
+            # Some functionality
+            self.size = self.data.size
+
             # Error handling
             self.init_assertions()
 
@@ -68,6 +71,12 @@ class TimeSeriesDataset(Dataset):
     def _col_indexer(self, cols):
         """ Returns a boolean list marking the index of the columns in the full column list. """
         return index_getter(self.columns, cols)
+
+    def ragged_size(self, idx=None):
+        """ Returns the total 'ragged' size. The time dimension returned is the sum of all lengths. """
+        size = (self.size(0), sum(self.lengths), self.size(2))
+        out = size if idx is None else size[idx]
+        return out
 
     def init_assertions(self):
         """ Assertions that can be run to ensure class variables have matching sizes. """

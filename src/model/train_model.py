@@ -1,4 +1,5 @@
 from definitions import *
+import numpy as np
 from sklearn.model_selection import KFold, cross_val_predict
 from lightgbm import LGBMRegressor, LGBMClassifier
 from src.data.dataset import TimeSeriesDataset
@@ -7,6 +8,8 @@ from src.features.derived_features import shock_index, partial_sofa
 from src.features.rolling import RollingStatistic
 from src.features.signatures.augmentations import apply_augmentation_list
 from src.features.signatures.compute import RollingSignature
+from src.model.model_selection import stratified_kfold_cv
+from src.model.optimizer import ThresholdOptimizer
 
 # Load the dataset
 dataset = TimeSeriesDataset().load(DATA_DIR + '/raw/data.tsd')
@@ -36,12 +39,14 @@ X = dataset.to_ml()
 assert len(X) == len(labels)    # Sanity check
 
 # Train a model
-cv = list(KFold(n_splits=5).split(X))
+cv = stratified_kfold_cv(dataset, labels, n_splits=5, seed=1)
 
 # Regressor
+print('Training model...')
 clf = LGBMClassifier()
 predictions = cross_val_predict(clf, X, labels, cv=cv, n_jobs=-1)
 
-
 # Evaluation
-
+print('Thresholding...')
+scores = ThresholdOptimizer(labels, predictions).optimize_cv(cv, parallel=True)
+print('Average: {:.3f}'.format(np.mean(scores)))

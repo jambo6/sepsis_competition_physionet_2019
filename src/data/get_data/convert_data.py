@@ -79,6 +79,11 @@ def convert_labels(df):
     return scores
 
 
+def get_overall_label(df):
+    """ Generates a 1 if the patient developed sepsis at any point. """
+    return df.groupby('id')['SepsisLabel'].apply(max)
+
+
 def create_timeseries_dataset(df):
     """ Creates a src.data.dataset.TimeSeriesDataset from the pandas dataframe. """
     # Remove unwanted cols
@@ -94,24 +99,23 @@ def create_timeseries_dataset(df):
 
     # Create dataset
     dataset = TimeSeriesDataset(data=tensor_data, columns=columns)
-    print(dataset.data.shape)
 
     return dataset
-
-
 
 
 if __name__ == '__main__':
     # Create a dataframe
     df = load_to_dataframe()
     save_pickle(df, DATA_DIR + '/raw/df.pickle')
+    df = load_pickle(DATA_DIR + '/raw/df.pickle')
 
     # Convert the scores
+    overall_labels = torch.Tensor(get_overall_label(df))
     scores = convert_labels(df)
 
     # Some things to save
-    binary_labels = df['SepsisLabel']
-    utility_scores = scores['utility']
+    binary_labels = torch.Tensor(df['SepsisLabel'].values)
+    utility_scores = torch.Tensor(scores['utility'])
 
     # Create a time-series dataset
     dataset = create_timeseries_dataset(df)
@@ -120,6 +124,7 @@ if __name__ == '__main__':
     save_pickle(scores, DATA_DIR + '/processed/labels/full_scores.pickle')
     save_pickle(utility_scores, DATA_DIR + '/processed/labels/utility_scores.pickle')
     save_pickle(binary_labels, DATA_DIR + '/processed/labels/binary.pickle')
+    save_pickle(overall_labels, DATA_DIR + '/processed/labels/overall_labels.pickle')
     dataset.save(DATA_DIR + '/raw/data.tsd')
 
 
