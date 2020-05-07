@@ -80,7 +80,7 @@ model.eval()
 with torch.no_grad():
     test_losses = []
     for i, batch in enumerate(test_dl):
-        inputs, _ = batch
+        inputs, true = batch
         preds = model(inputs).view(-1)
         loss = loss_fn(preds, true.view(-1))
         test_losses.append(loss.item())
