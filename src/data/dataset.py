@@ -16,6 +16,10 @@ class TimeSeriesDataset(Dataset):
     This class should be used rather than simply a nan-filled tensor up to max length when you need to do the following:
         - Access columns by column name, rather than index
         - Convert back to the original lengths after computations
+
+    # TODO: A lot of functionality can be added to this.
+        - When getting dataset[column_name] it would be good to return a TimeSeriesDataset instance instead of a tensor
+        we then need to implement how to add, subtract, divide etc with this class.
     """
     def __init__(self, data=None, columns=None):
         """
@@ -49,8 +53,7 @@ class TimeSeriesDataset(Dataset):
         Returns:
             torch.Tensor: Tensor corresponding to the chosen columns.
         """
-        data = self.data[:, :, self._col_indexer(cols)]
-        return TimeSeriesDataset(data, cols)
+        return self.data[:, :, self._col_indexer(cols)]
 
     def __setitem__(self, key, item):
         """
