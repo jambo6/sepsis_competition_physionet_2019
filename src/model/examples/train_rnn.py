@@ -7,10 +7,14 @@ from tqdm import tqdm
 from src.data.dataset import TimeSeriesDataset, ListDataset
 from src.model.model_selection import stratified_kfold_cv
 from src.model.nets import RNN
+from src.model.optimizer import optimize_utility_threshold, compute_utility_from_indexes
+
+# GPU
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 # Load the full dataset
 dataset = TimeSeriesDataset().load(DATA_DIR + '/raw/data.tsd')
-labels = load_pickle(DATA_DIR + '/processed/labels/utility_scores.pickle')
+labels = torch.Tensor(load_pickle(DATA_DIR + '/processed/labels/utility_scores.pickle'))
 
 # For the RNN, lets only consider the variables that change often
 data = dataset[['DBP', 'SBP', 'Temp', 'HR', 'MAP', 'ICULOS']]
@@ -21,15 +25,17 @@ dataset.data[torch.isnan(dataset.data)] = 0
 # Since this is an RNN, we will deal with the data as variable length lists
 data = dataset.to_list()
 
-# Get the id-indexed CV fold
+# Get the id-indexed CV fold. We need both patient indexes and time index.
 cv, id_cv = stratified_kfold_cv(dataset, labels, n_splits=5, return_as_list=True, seed=1)
+train_idxs, test_idxs = cv[0]
+train_id_idxs, test_id_idxs = id_cv[0]
 
 # Make train and test data
 # TODO: This should really be train/test/val.
-train_data = [data[i] for i in id_cv[0][0]]
-train_labels = [labels[i] for i in cv[0][0]]
-test_data = [data[i] for i in id_cv[0][1]]
-test_labels = [labels[i] for i in cv[0][1]]
+train_data = [data[i].to(device) for i in train_id_idxs]
+train_labels = [labels[i].to(device) for i in train_idxs]
+test_data = [data[i].to(device) for i in test_id_idxs]
+test_labels = [labels[i].to(device) for i in test_idxs]
 
 # Datasets
 train_ds = ListDataset(train_data, train_labels)
@@ -43,6 +49,7 @@ test_dl = DataLoader(test_ds, batch_size=1)
 model = RNN(in_channels=data[0].size(1), hidden_channels=10, out_channels=1)
 optimizer = optim.Adam(model.parameters(), lr=1e-3)
 loss_fn = nn.MSELoss()
+model.to(device)
 
 # Training loop
 n_epochs = 1
@@ -67,14 +74,34 @@ for epoch in range(n_epochs):
 # Evaluate on test
 # TODO: Sort this to work with threshold optimizer somehow
 model.eval()
-preds = []
+train_preds, test_preds = [], []
 with torch.no_grad():
-    for data_ in test_data:
-        preds.append(model(data_.unsqueeze(0)).view(-1))
+    # Predict train
+    for batch in train_data:
+        train_preds.append(model(batch.unsqueeze(0)).view(-1))
 
-    # Concat and evaluate
-    full_predictions = torch.cat(preds)
-    full_labels = torch.cat(test_labels)
-    test_loss = loss_fn(full_predictions.view(-1), full_labels.view(-1))
-    print('Test loss: {:.3f}'.format(test_loss))
+    # Predict test
+    for batch in test_data:
+        test_preds.append(model(batch.unsqueeze(0)).view(-1))
 
+# Concat
+train_preds = torch.cat(train_preds).view(-1).detach()
+test_preds = torch.cat(test_preds).view(-1).detach()
+train_labels = torch.cat(train_labels).view(-1).detach()
+test_labels = torch.cat(test_labels).view(-1).detach()
+
+# Compute losses
+train_loss = loss_fn(train_labels, train_preds)
+test_loss = loss_fn(test_labels, test_preds)
+print('Train loss: {:.3f}'.format(train_loss))
+print('Test loss: {:.3f}'.format(test_loss))
+
+# Compute the score on the utility function
+train_idxs, test_idxs = torch.cat(train_idxs), torch.cat(test_idxs)
+tfm_np = lambda x: x.cpu().numpy()
+train_preds, test_preds = tfm_np(train_preds), tfm_np(test_preds)
+thresh = optimize_utility_threshold(train_preds, idxs=train_idxs)
+train_utility = compute_utility_from_indexes(train_preds, thresh, idxs=train_idxs)
+test_utility = compute_utility_from_indexes(test_preds, thresh, idxs=test_idxs)
+print('Train utility score: {:.3f}'.format(train_utility))
+print('Test utility score: {:.3f}'.format(test_utility))
