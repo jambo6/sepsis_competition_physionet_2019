@@ -7,6 +7,9 @@ Getting Started
 ---------------
 Once the repo has been cloned locally, setup a python environment with ``python==3.7`` and run ``pip install -r requirements.txt``.
 
+You then need to add the project root directory to your virtualenv python's path. This can be done by adding the location of the root folder into the site_packages.pth directory.
+(See Arjen P. De Vries answer here: https://stackoverflow.com/questions/4757178/how-do-you-set-your-pythonpath-in-an-already-created-virtualenv/47184788#47184788).
+
 Create a folder `/data/raw`, the `data/` folder should be made a symlink if you wish to store the large data files elsewhere. 
 
 Run the following:

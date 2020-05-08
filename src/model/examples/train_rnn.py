@@ -72,7 +72,6 @@ for epoch in range(n_epochs):
 
 
 # Evaluate on test
-# TODO: Sort this to work with threshold optimizer somehow
 model.eval()
 train_preds, test_preds = [], []
 with torch.no_grad():

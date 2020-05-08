@@ -12,9 +12,12 @@ def main():
     and `data/raw/training_setB`.
     """
     base_dir = DATA_DIR + '/raw'
-    assert os.path.isdir(base_dir), 'Please make a directory at {ROOT}/data/raw. Note: we leave this down to the user' \
+    assert os.path.isdir(DATA_DIR), 'Please make a directory at {ROOT}/data. Note: we leave this down to the user' \
                                     'to give you the option of making the directory a symlink. The estimated space ' \
                                     'required is around 3GB.'
+
+    if not os.path.isdir(base_dir):
+        os.mkdir(base_dir)
 
     # Two save dirs
     save_loc_a = base_dir + '/training_setA'
