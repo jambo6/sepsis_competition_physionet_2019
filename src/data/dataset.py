@@ -148,6 +148,14 @@ class TimeSeriesDataset(Dataset):
         """ Converts onto a single tensor of original lengths. """
         return torch.cat(self.to_list())
 
+    def subset(self, columns):
+        """ Return only a subset of the dataset columns but as a TimeSeriesDataset. """
+        assert isinstance(columns, list)
+        assert all([x in self.columns for x in columns])
+        dataset = TimeSeriesDataset(self[columns], columns)
+        dataset.lengths = self.lengths
+        return dataset
+
 
 class ListDataset(Dataset):
     """Simple dataset for ragged length list-style data.
