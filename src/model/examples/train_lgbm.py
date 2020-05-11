@@ -6,7 +6,6 @@ from src.data.dataset import TimeSeriesDataset
 from src.data.functions import torch_ffill
 from src.features.derived_features import shock_index, partial_sofa
 from src.features.rolling import RollingStatistic
-from src.features.signatures.augmentations import apply_augmentation_list
 from src.features.signatures.compute import RollingSignature
 from src.model.model_selection import stratified_kfold_cv
 from src.model.optimizer import CVThresholdOptimizer
@@ -20,19 +19,23 @@ labels = load_pickle(DATA_DIR + '/processed/labels/utility_scores.pickle')
 # Apply a forward fill
 dataset.data = torch_ffill(dataset.data)
 
-# # Add on some additional features
-# dataset['ShockIndex'] = shock_index(dataset)
-# dataset['PartialSOFA'] = partial_sofa(dataset)
-#
-# # Now generate some rolling window features
-# max_shock = RollingStatistic(statistic='max', window_length=5).transform(dataset['ShockIndex'])
-# dataset['MaxShockIndex'] = max_shock
-#
-# # Now some rolling signatures
-# augmented_path = apply_augmentation_list(dataset[['ShockIndex', 'HR']], aug_list=['addtime'])
-# rolling_signature = RollingSignature(window=6, depth=3, logsig=True)
-# signatures = rolling_signature.transform(augmented_path)
-# dataset.add_features(signatures)
+# Add on some additional features
+dataset['ShockIndex'] = shock_index(dataset)
+dataset['PartialSOFA'] = partial_sofa(dataset)
+
+# Now generate some rolling window features
+max_shock = RollingStatistic(statistic='max', window_length=5).transform(dataset['ShockIndex'])
+dataset['MaxShockIndex'] = max_shock
+
+# Now some rolling signatures
+roller = RollingSignature(window=6, depth=3, aug_list=['leadlag'], logsig=True)
+signatures = roller.transform(dataset[['PartialSOFA', 'ShockIndex']])
+dataset.add_features(signatures)
+
+# Now some rolling signatures
+roller = RollingSignature(window=10, depth=3, logsig=True, aug_list=['addtime', 'penoff'])
+signatures = roller.transform(dataset[['PartialSOFA', 'HR']])
+dataset.add_features(signatures)
 
 # Extract machine learning data
 X = dataset.to_ml()

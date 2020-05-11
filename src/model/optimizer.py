@@ -89,8 +89,9 @@ def optimize_utility_threshold(predictions, scores=None, idxs=None, budget=200, 
     Returns:
         float: The estimation of the optimal cutoff threshold for which to predict sepsis.
     """
-    # Load the full version of the scores
-    scores = load_pickle(DATA_DIR + '/processed/labels/full_scores.pickle').values
+    # Load the full version of the scores if not pre-specified
+    if scores is None:
+        scores = load_pickle(DATA_DIR + '/processed/labels/full_scores.pickle').values
 
     if idxs is not None:
         scores = scores[idxs]
@@ -128,10 +129,11 @@ def compute_utility_from_indexes(predictions, thresh, scores=None, idxs=None):
         scores = load_pickle(DATA_DIR + '/processed/labels/full_scores.pickle').values
 
     # Check correct size
-    assert len(idxs) == len(predictions), "idxs and predictions have a different size. idxs must correspond to the " \
-                                          "location of the predictions in the full dataset, and predictons must " \
-                                          "be that subset of predictions. You may need to have predictions[idxs] as the" \
-                                          "predictions input of this function."
+    if idxs is not None:
+        assert len(idxs) == len(predictions), "idxs and predictions have a different size. idxs must correspond to " \
+                                              "the location of the predictions in the full dataset, and predictons " \
+                                              "must be that subset of predictions. You may need to have " \
+                                              "predictions[idxs] as the predictions input of this function."
 
     # Get the corresponding indexes
     scores = scores[idxs] if idxs is not None else scores
@@ -153,6 +155,10 @@ def compute_utility(scores, predictions, thresh):
     Returns:
         float: The normalised score.
     """
+    len_scores, len_preds = len(scores), len(predictions)
+    assert len_scores == len_preds, 'Num predictions: {}, Num scores: {}. These must be the same, ensure you have made ' \
+                                    'the appropriate index reduction before calling this function'.format(len_scores, len_preds)
+
     # Precompute the inaction and perfect scores
     inaction_score = scores[:, 0].sum()
     perfect_score = scores[:, [0, 1]].max(axis=1).sum()
