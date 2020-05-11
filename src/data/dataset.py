@@ -33,9 +33,6 @@ class TimeSeriesDataset(Dataset):
             self.lengths = [d.size(0) for d in data]
             self.columns = columns
 
-            # Some functionality
-            self.size = self.data.size
-
             # Error handling
             self.init_assertions()
 
@@ -124,6 +121,12 @@ class TimeSeriesDataset(Dataset):
         # Update
         self.data = torch.cat((self.data, data), dim=2)
         self.columns.extend(columns)
+
+    def size(self, *args):
+        return self.data.size(*args)
+
+    def shape(self, *args):
+        return self.data.shape(*args)
 
     def save(self, loc):
         """ Saves data, lengths and columns as a pickle. """
