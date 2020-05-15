@@ -50,3 +50,17 @@ def pytorch_rolling(x, dimension, window_size, step_size=1, return_same_size=Tru
     unfolded = x.unfold(dimension, window_size, step_size)
 
     return unfolded
+
+
+def torch_ffill_3d(data):
+    """ Forward fill a 3d tensor in one swift movement. """
+    pass
+
+
+if __name__ == '__main__':
+    a = torch.randn(3, 4, 2)
+    a[0, [2, 3], 0] = np.nan
+    a[0, [1, 2, 3], 1] = np.nan
+    a[1, [1, 3], 0] = np.nan
+    a[1, 3, 1] = np.nan
+    torch_ffill_3d(data)

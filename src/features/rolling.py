@@ -6,6 +6,7 @@ For calculating features over rolling windows.
 import numpy as np
 import torch
 import warnings
+from src.omni.decorators import timeit
 from src.features.helpers import pytorch_rolling
 
 
@@ -34,6 +35,11 @@ class RollingStatistic:
         self.func_kwargs = func_kwargs
 
     @staticmethod
+    def count(data):
+        counts = (~torch.isnan(data)).sum(axis=-1)
+        return counts.to(data.dtype)
+
+    @staticmethod
     def max(data):
         return data.max(axis=3)[0]
         # return torch.Tensor(np.nanmax(data, axis=3))
@@ -57,7 +63,7 @@ class RollingStatistic:
         return data[:, :, :, -1] - data[:, :, :, 0]
 
     @staticmethod
-    def moments(data, n=2):
+    def moments(data, n=3):
         """Gets statistical moments from the data.
 
         Args:
@@ -85,6 +91,7 @@ class RollingStatistic:
 
         return moments
 
+    @timeit
     def transform(self, data):
         # Remove mean of empty slice warning
         warnings.filterwarnings("ignore", category=RuntimeWarning)

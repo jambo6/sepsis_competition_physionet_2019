@@ -6,6 +6,7 @@ Methods for computing signatures.
 import torch
 from torch.utils.data import TensorDataset, DataLoader
 import signatory
+from src.omni.decorators import timeit
 from src.data.functions import pytorch_rolling
 from src.features.signatures.augmentations import apply_augmentation_list
 
@@ -63,6 +64,7 @@ class RollingSignature:
         self.n_batches = n_batches
         self.device = device
 
+    @timeit
     def transform(self, data):
         # Handle device
         original_device = data.device
