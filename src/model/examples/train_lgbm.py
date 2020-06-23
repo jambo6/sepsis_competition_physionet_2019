@@ -17,7 +17,6 @@ dataset = TimeSeriesDataset().load(DATA_DIR + '/raw/data.tsd')
 
 # Load the training labels
 labels = load_pickle(DATA_DIR + '/processed/labels/utility_scores.pickle')
-cv, _ = stratified_kfold_cv(dataset, labels, n_splits=5, seed=3)
 
 # First get counts of the laboratory values
 count_variables = dicts.feature_types['laboratory'] + ['Temp']
@@ -52,16 +51,15 @@ X = dataset.to_ml()
 assert len(X) == len(labels)    # Sanity check
 
 # Setup cv
-cv, _ = stratified_kfold_cv(dataset, labels, n_splits=5, seed=3)
-# cv = load_pickle(MODELS_DIR + '/cross_validation/cv_fold.pkl')
+# cv, cv_id = stratified_kfold_cv(dataset, labels, n_splits=5, seed=5)
+cv = load_pickle(MODELS_DIR + '/cross_validation/cv_folds.pkl')
 
 # Load in the lgbm gridsearch
-lgbm_params = load_pickle(MODELS_DIR + '/official/lgb_parameters_1.pickle')
+lgbm_params = load_pickle(MODELS_DIR + '/official/lgb_fast_params.pkl')
 
 # Regressor
 print('Training model...')
 clf = LGBMRegressor().set_params(**lgbm_params)
-clf.set_params(**{'n_estimators': 100, 'min_child_samples': 199, 'min_child_weight': 38, 'num_leaves': 49})
 predictions = cross_val_predict(clf, X, labels, cv=cv, n_jobs=-1)
 
 # Evaluation
