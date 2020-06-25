@@ -2,7 +2,6 @@
 convert_data.py
 ================================
 Converts the raw .psv files downloaded in src/data/get_data/download.py into a dataframe useful for analysis.
-
 Further, this converts the binary 0-1 labels to the corresponding utility score.
 """
 from definitions import *
@@ -26,7 +25,8 @@ def load_to_dataframe():
     id = 0
     hospital = 1
     for loc in tqdm(locations):
-        for file in tqdm(os.listdir(loc)):
+        srt_dir = sorted(os.listdir(loc))
+        for file in tqdm(srt_dir):
             id_df = pd.read_csv(loc + '/' + file, sep='|')
             id_df['id'] = id    # Give a unique id
             id_df['hospital'] = hospital    # Note the hospital
@@ -48,7 +48,6 @@ def load_to_dataframe():
 
 def convert_labels(df):
     """Convert the binary labels to the corresponding utility score.
-
     The labels are given binary 0-1 values, but are scored according to a pre-defined utility score. Here we convert the
     binary labels onto their corresponding utility value as this value will be more useful for prediction than the
     binary labels.
@@ -128,7 +127,3 @@ if __name__ == '__main__':
     save_pickle(binary_labels, DATA_DIR + '/processed/labels/binary.pickle')
     save_pickle(overall_labels, DATA_DIR + '/processed/labels/overall_labels.pickle')
     dataset.save(DATA_DIR + '/raw/data.tsd')
-
-
-
-

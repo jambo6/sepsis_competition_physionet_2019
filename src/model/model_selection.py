@@ -40,7 +40,7 @@ def stratified_kfold_cv(dataset, labels, n_splits=5, return_as_list=False, seed=
     contains_one = np.array([labels.max().item() > 0 for labels in id_labels])
 
     # Now perform a group K fold on the ids so we have stratified sepsis/non-sepsis split
-    id_cv = list(StratifiedKFold(n_splits=n_splits).split(contains_one, contains_one, groups=contains_one))
+    id_cv = list(StratifiedKFold(n_splits=n_splits, random_state=seed, shuffle=True).split(contains_one, contains_one, groups=contains_one))
 
     # Now convert this back onto the actual time series ids
     cv = []
