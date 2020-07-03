@@ -26,7 +26,8 @@ def load_to_dataframe():
     id = 0
     hospital = 1
     for loc in tqdm(locations):
-        for file in tqdm(os.listdir(loc)):
+        srt_dir = sorted(os.listdir(loc))
+        for file in tqdm(srt_dir):
             id_df = pd.read_csv(loc + '/' + file, sep='|')
             id_df['id'] = id    # Give a unique id
             id_df['hospital'] = hospital    # Note the hospital
