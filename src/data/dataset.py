@@ -234,6 +234,6 @@ def index_getter(full_list, idx_items):
     assert len(diff_cols) == 0, "The following cols do not exist in the dataset: {}".format(diff_cols)
 
     # Actual masking
-    col_mask = [c in idx_items for c in full_list]
+    col_idxs = [i for i, c in enumerate(full_list) if c in idx_items]
 
-    return col_mask
+    return col_idxs
